@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================= -->
+    <!--  POM PAI (agregador + gestão de dependências)                 -->
+    <!--                                                               -->
+    <!--  Herda de spring-boot-starter-parent para centralizar as      -->
+    <!--  versões do ecossistema Spring num único lugar. Os módulos     -->
+    <!--  filhos herdam daqui e só declaram as starters que usam.      -->
+    <!--  Ver docs/adr/0003-database-per-service.md sobre o escopo do  -->
+    <!--  módulo common-events (contratos, nunca entidades/negócio).   -->
+    <!-- ============================================================= -->
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <!-- Última estável da linha 3.x. Confirme/atualize o patch exato em start.spring.io. -->
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.portfolio.reconciliation</groupId>
+    <artifactId>payment-reconciliation-engine</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Payment Reconciliation Engine</name>
+    <description>Motor de conciliação de pagamentos — arquitetura de microsserviços (portfólio)</description>
+
+    <modules>
+        <module>common-events</module>
+        <module>ingestion-service</module>
+        <module>reconciliation-service</module>
+        <module>notification-service</module>
+        <module>report-service</module>
+    </modules>
+
+    <properties>
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <testcontainers.version>1.20.3</testcontainers.version>
+        <resilience4j.version>2.2.0</resilience4j.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Contratos de evento compartilhados entre os serviços -->
+            <dependency>
+                <groupId>com.portfolio.reconciliation</groupId>
+                <artifactId>common-events</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- BOM do Testcontainers (Postgres + RabbitMQ reais nos testes de integração) -->
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers-bom</artifactId>
+                <version>${testcontainers.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- BOM do Resilience4j (bônus: retry/circuit breaker) -->
+            <dependency>
+                <groupId>io.github.resilience4j</groupId>
+                <artifactId>resilience4j-bom</artifactId>
+                <version>${resilience4j.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>

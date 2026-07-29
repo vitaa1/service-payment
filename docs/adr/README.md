@@ -1,0 +1,21 @@
+# Architecture Decision Records (ADRs)
+
+Este diretório registra as **decisões de arquitetura** do projeto — o *porquê* por trás da estrutura, não só o *o quê*. Cada ADR captura o contexto em que a decisão foi tomada, a decisão em si, as alternativas consideradas e as consequências (boas e ruins).
+
+Formato inspirado no modelo de Michael Nygard. Use [`template.md`](template.md) para novos registros.
+
+## Índice
+
+| # | Título | Status |
+|---|---|---|
+| [0001](0001-adocao-de-microsservicos.md) | Adoção de arquitetura de microsserviços | Aceito |
+| [0002](0002-comunicacao-hibrida-mensageria-rest.md) | Comunicação híbrida: mensageria entre serviços, REST na borda | Aceito |
+| [0003](0003-database-per-service.md) | Database per Service e escopo do módulo common-events | Aceito |
+| [0004](0004-cqrs-no-report-service.md) | CQRS parcimonioso no report-service | Aceito |
+
+## Status possíveis
+
+- **Proposto** — em discussão
+- **Aceito** — decisão em vigor
+- **Substituído por ADR-XXXX** — decisão superada por outra
+- **Depreciado** — não se aplica mais

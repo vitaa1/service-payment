@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.portfolio.reconciliation</groupId>
+        <artifactId>payment-reconciliation-engine</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>common-events</artifactId>
+    <name>common-events</name>
+    <description>
+        Contratos de evento (envelope + payloads) trafegados no RabbitMQ.
+        ESCOPO ESTRITO: apenas POJOs/records de mensagem e constantes de roteamento.
+        PROIBIDO: entidades JPA, lógica de negócio, dependências de Spring Data ou Web.
+        Fonte da verdade dos contratos: docs/events/.
+    </description>
+
+    <!-- packaging jar (default): biblioteca reutilizada pelos serviços, não é um app Boot -->
+
+    <dependencies>
+        <!-- Anotações do Jackson para (de)serialização dos contratos. Sem Spring aqui. -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
