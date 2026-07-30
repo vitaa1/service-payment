@@ -15,10 +15,17 @@
     <description>Puramente reativo. Consome DivergenceDetected e notifica (e-mail via Mailhog). Mantém log das notificações no banco próprio.</description>
 
     <dependencies>
-        <!-- Consumo de eventos do RabbitMQ (sem REST) -->
+        <!-- Consumo de eventos do RabbitMQ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- Servidor web SOMENTE para o Actuator (health/liveness probes).
+             Não é borda REST: nenhum endpoint de negócio é exposto aqui (ADR-0002). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- Envio de e-mail (Mailhog no ambiente local) -->

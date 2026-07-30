@@ -1,0 +1,219 @@
+name: payment-reconciliation-engine
+
+networks:
+  reconciliation-net:
+    driver: bridge
+
+volumes:
+  ingestion-db-data:
+  reconciliation-db-data:
+  notification-db-data:
+  report-db-data:
+
+services:
+
+  # ---------------------------------------------------------------
+  # Infraestrutura de suporte
+  # ---------------------------------------------------------------
+
+  ingestion-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ingestion_db
+      POSTGRES_USER: ingestion
+      POSTGRES_PASSWORD: ingestion
+    ports:
+      - "5433:5432"
+    volumes:
+      - ingestion-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ingestion -d ingestion_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [reconciliation-net]
+
+  reconciliation-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: reconciliation_db
+      POSTGRES_USER: reconciliation
+      POSTGRES_PASSWORD: reconciliation
+    ports:
+      - "5434:5432"
+    volumes:
+      - reconciliation-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reconciliation -d reconciliation_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [reconciliation-net]
+
+  notification-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification
+      POSTGRES_PASSWORD: notification
+    ports:
+      - "5435:5432"
+    volumes:
+      - notification-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification -d notification_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [reconciliation-net]
+
+  report-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: report_db
+      POSTGRES_USER: report
+      POSTGRES_PASSWORD: report
+    ports:
+      - "5436:5432"
+    volumes:
+      - report-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U report -d report_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [reconciliation-net]
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # painel de gestão (http://localhost:15672)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [reconciliation-net]
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # painel web (http://localhost:8025)
+    networks: [reconciliation-net]
+
+  # ---------------------------------------------------------------
+  # Serviços da aplicação
+  # ---------------------------------------------------------------
+
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
+    environment:
+      DB_HOST: ingestion-db
+      DB_PORT: 5432
+      DB_NAME: ingestion_db
+      DB_USER: ingestion
+      DB_PASSWORD: ingestion
+      RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8081:8080"
+    depends_on:
+      ingestion-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [reconciliation-net]
+
+  reconciliation-service:
+    build:
+      context: .
+      dockerfile: reconciliation-service/Dockerfile
+    environment:
+      DB_HOST: reconciliation-db
+      DB_PORT: 5432
+      DB_NAME: reconciliation_db
+      DB_USER: reconciliation
+      DB_PASSWORD: reconciliation
+      RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8082:8080"
+    depends_on:
+      reconciliation-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [reconciliation-net]
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    environment:
+      DB_HOST: notification-db
+      DB_PORT: 5432
+      DB_NAME: notification_db
+      DB_USER: notification
+      DB_PASSWORD: notification
+      RABBITMQ_HOST: rabbitmq
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+    ports:
+      - "8083:8080"
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [reconciliation-net]
+
+  report-service:
+    build:
+      context: .
+      dockerfile: report-service/Dockerfile
+    environment:
+      DB_HOST: report-db
+      DB_PORT: 5432
+      DB_NAME: report_db
+      DB_USER: report
+      DB_PASSWORD: report
+      RABBITMQ_HOST: rabbitmq
+    ports:
+      - "8084:8080"
+    depends_on:
+      report-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks: [reconciliation-net]
