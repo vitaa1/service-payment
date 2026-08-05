@@ -279,7 +279,7 @@ Modelo desnormalizado, otimizado para consulta. Alimentado por eventos, nunca es
 |---|---|---|
 | Testes unitários | JUnit 5 + Mockito | lógica de matching, validação, mapeamentos |
 | Testes de integração | Testcontainers (Postgres + RabbitMQ) | fluxo publica→consome, persistência real |
-| Containerização | Dockerfile por serviço | `docker/` |
+| Containerização | Dockerfile por serviço | `<serviço>/Dockerfile` (multi-stage) |
 | Orquestração local | docker-compose | serviços + 4 Postgres + RabbitMQ + Mailhog |
 | CI/CD | GitHub Actions | build + testes a cada push/PR |
 | Resiliência (bônus) | Resilience4j | retry/circuit breaker no consumo |

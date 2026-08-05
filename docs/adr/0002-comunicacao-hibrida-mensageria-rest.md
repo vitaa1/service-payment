@@ -19,6 +19,8 @@ Adotamos **comunicação híbrida**:
 - **Mensageria assíncrona (RabbitMQ)** para toda comunicação entre serviços de processamento. Os serviços publicam **eventos de fato ocorrido** (ex.: `TransactionNormalized`) e consomem o que lhes interessa. Não há chamada REST interna entre serviços de processamento.
 - **REST síncrono apenas na borda**: cliente → `ingestion-service` (enviar dados brutos) e cliente → `report-service` (consultar estado).
 
+> **Nuance — endpoints operacionais:** todos os serviços (inclusive `reconciliation` e `notification`) expõem HTTP do **Spring Boot Actuator** (`/actuator/health`). Isso não viola a regra: são endpoints *operacionais* para probes de liveness/health (docker-compose, Kubernetes), não API de negócio. A regra "REST só na borda" se aplica a **endpoints de negócio**.
+
 ## Alternativas consideradas
 
 - **REST síncrono em tudo (inclusive interno).** Simples de entender e depurar, mas acopla temporalmente os serviços (todos precisam estar no ar ao mesmo tempo), dificulta múltiplos consumidores e não demonstra mensageria — um dos objetivos do projeto.

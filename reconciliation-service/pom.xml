@@ -12,13 +12,20 @@
 
     <artifactId>reconciliation-service</artifactId>
     <name>reconciliation-service</name>
-    <description>Núcleo. Consome TransactionNormalized, aplica o algoritmo de matching, persiste o resultado e emite ReconciliationCompleted / DivergenceDetected. Sem REST (não é borda).</description>
+    <description>Núcleo. Consome TransactionNormalized, aplica o algoritmo de matching, persiste o resultado e emite ReconciliationCompleted / DivergenceDetected. Sem REST de negócio (não é borda); HTTP apenas para Actuator.</description>
 
     <dependencies>
-        <!-- Consumo e publicação de eventos no RabbitMQ (sem starter-web: não é borda) -->
+        <!-- Consumo e publicação de eventos no RabbitMQ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
+        <!-- Servidor web SOMENTE para o Actuator (health/liveness probes).
+             Não é borda REST: nenhum endpoint de negócio é exposto aqui (ADR-0002). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
         <!-- Persistência do estado da conciliação — banco próprio -->

@@ -2,7 +2,7 @@
 
 Motor de conciliação de pagamentos construído em **Java 21 + Spring Boot 3.x**, arquitetado como microsserviços desacoplados por mensageria. Projeto de portfólio focado em demonstrar boas práticas de arquitetura, testes e infraestrutura.
 
-> **Status:** fase de design. Este repositório contém, por enquanto, a estrutura multi-módulo e a documentação de arquitetura. O código de aplicação será implementado nas próximas fases.
+> **Status:** infraestrutura local pronta (docker-compose com os 4 serviços, bancos, RabbitMQ e Mailhog) e CI configurado. A lógica de negócio (conciliação, eventos, APIs) será implementada nas próximas fases.
 
 ## O que o sistema faz
 
@@ -48,21 +48,37 @@ Módulo de apoio: **common-events** — contratos das mensagens trafegadas no Ra
 payment-reconciliation-engine/
 ├── pom.xml                     # POM pai (agregador + BOM de versões)
 ├── common-events/              # Contratos de evento compartilhados
-├── ingestion-service/
+├── ingestion-service/          # (cada serviço tem seu próprio Dockerfile)
 ├── reconciliation-service/
 ├── notification-service/
 ├── report-service/
-├── docker/                     # Dockerfiles por serviço (fase de implementação)
-├── docker-compose.yml          # (fase de implementação)
-├── .github/workflows/          # Pipelines de CI/CD (fase de implementação)
+├── docker-compose.yml          # infra local completa
+├── .github/workflows/ci.yml    # pipeline de CI
 └── docs/
     ├── architecture.md
     ├── adr/
     └── events/
 ```
 
-## Como buildar (após a implementação)
+## Como buildar
+
+Requer Maven instalado localmente (ou use o Maven integrado da sua IDE, ex.: IntelliJ):
 
 ```bash
-./mvnw clean verify
+mvn clean verify
 ```
+
+## Como subir a infraestrutura local
+
+```bash
+docker compose up --build
+```
+
+| Serviço | URL |
+|---|---|
+| ingestion-service | http://localhost:8081 |
+| reconciliation-service | http://localhost:8082 |
+| notification-service | http://localhost:8083 |
+| report-service | http://localhost:8084 |
+| RabbitMQ (painel) | http://localhost:15672 (guest/guest) |
+| Mailhog (painel) | http://localhost:8025 |
