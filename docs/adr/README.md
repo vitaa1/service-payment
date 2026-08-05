@@ -12,6 +12,8 @@ Formato inspirado no modelo de Michael Nygard. Use [`template.md`](template.md) 
 | [0002](0002-comunicacao-hibrida-mensageria-rest.md) | Comunicação híbrida: mensageria entre serviços, REST na borda | Aceito |
 | [0003](0003-database-per-service.md) | Database per Service e escopo do módulo common-events | Aceito |
 | [0004](0004-cqrs-no-report-service.md) | CQRS parcimonioso no report-service | Aceito |
+| [0005](0005-design-serializacao-common-events.md) | Design de serialização e tipagem do common-events | Aceito |
+| [0006](0006-transactional-outbox.md) | Publicação de eventos via Transactional Outbox | Aceito |
 
 ## Status possíveis
 
