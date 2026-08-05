@@ -31,3 +31,8 @@ build/
 
 # Claude Code (config local, não parte do projeto)
 .claude/settings.local.json
+
+# Skills instaladas (mattpocock/skills etc.) — restauráveis via skills-lock.json
+# com `npx skills experimental_install`. Só o lockfile é versionado.
+.claude/skills/
+.agents/
