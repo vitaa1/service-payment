@@ -1,0 +1,16 @@
+{
+  "eventId": "b4f1e6a0-9c2d-4a7e-8f13-2a6d5c1e9b00",
+  "eventType": "TransactionNormalized",
+  "eventVersion": 1,
+  "occurredAt": "2026-07-29T13:45:12.482Z",
+  "traceId": "1f0c8a2e-77b4-4d51-9a3c-6e2b0d4f8a11",
+  "producer": "ingestion-service",
+  "payload": {
+    "ingestionId": "8a2b1c3d-4e5f-6071-8293-a4b5c6d7e8f9",
+    "source": "BANK_STATEMENT",
+    "externalReference": "chg_9f8e7d6c5b4a",
+    "amount": "199.90",
+    "currency": "BRL",
+    "transactionDate": "2026-07-29"
+  }
+}

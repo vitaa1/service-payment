@@ -33,5 +33,19 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Só em teste: databind + jsr310 para exercitar round-trip de (de)serialização.
+             O main mantém apenas jackson-annotations (ADR-0003); quem serializa de fato
+             são os serviços (via Jackson do Spring). -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
