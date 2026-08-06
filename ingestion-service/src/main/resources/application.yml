@@ -19,6 +19,11 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
     # Confirmação do broker: o relay só marca published_at após o ack (ADR-0006).
     publisher-confirm-type: correlated
+  # Pool dedicado para os @Scheduled (relay + purge não competem pela mesma thread).
+  task:
+    scheduling:
+      pool:
+        size: 2
 
 # Defaults do Outbox relay (ADR-0006). Ajustáveis por ambiente.
 ingestion:

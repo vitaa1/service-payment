@@ -34,6 +34,7 @@ Isso separa de forma inequívoca **reentrega** (mesma key) de **duplicata genuí
 ### Negativas / custos
 - Coluna `UNIQUE` adicional e um lookup por request.
 - A garantia depende de o **cliente** enviar a key; sem ela, não há proteção (opção deliberada — não temos um id de entrega confiável para impor).
+- A idempotência **não é escopada por cliente** (o endpoint é público, sem autenticação nesta fase). Um chamador que reuse a key de outro recebe o `ingestionId`/`traceId` associado (baixa sensibilidade). Escopar por cliente fica para quando houver auth.
 
 ### Mitigações
 - Documentado no contrato de entrada ([docs/ingestion/source-formats.md](../ingestion/source-formats.md)) que a key é a forma suportada de tornar a entrega idempotente.

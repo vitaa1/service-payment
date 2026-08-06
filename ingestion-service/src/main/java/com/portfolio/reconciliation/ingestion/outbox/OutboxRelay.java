@@ -70,6 +70,9 @@ public class OutboxRelay {
       } else {
         registrarFalha(event, "broker nack");
       }
+    } catch (InterruptedException ex) {
+      Thread.currentThread().interrupt();
+      registrarFalha(event, "publicação interrompida");
     } catch (Exception ex) {
       registrarFalha(event, ex.getMessage());
     }

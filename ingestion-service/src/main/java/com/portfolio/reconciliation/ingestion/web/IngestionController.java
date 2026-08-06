@@ -4,6 +4,7 @@ import com.portfolio.reconciliation.events.Source;
 import com.portfolio.reconciliation.ingestion.ingest.IngestionResult;
 import com.portfolio.reconciliation.ingestion.ingest.IngestionService;
 import java.util.Map;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,7 +42,17 @@ public class IngestionController {
       throw new UnknownSourceException(source);
     }
 
-    IngestionResult result = ingestionService.ingest(resolved, body, idempotencyKey);
+    IngestionResult result;
+    try {
+      result = ingestionService.ingest(resolved, body, idempotencyKey);
+    } catch (DataIntegrityViolationException race) {
+      // Corrida de idempotência (ADR-0008): a constraint UNIQUE pegou uma inserção concorrente.
+      if (idempotencyKey == null || idempotencyKey.isBlank()) {
+        throw race;
+      }
+      result = ingestionService.replayByKey(idempotencyKey);
+    }
+
     if (result.accepted()) {
       return ResponseEntity.accepted()
           .body(new IngestionResponse(result.ingestionId(), result.traceId()));

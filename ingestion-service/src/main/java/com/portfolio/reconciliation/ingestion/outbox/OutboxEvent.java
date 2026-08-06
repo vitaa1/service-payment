@@ -50,7 +50,8 @@ public class OutboxEvent {
     // JPA
   }
 
-  public OutboxEvent(UUID eventId, String eventType, String routingKey, UUID traceId, String payload) {
+  public OutboxEvent(
+      UUID eventId, String eventType, String routingKey, UUID traceId, String payload) {
     this.eventId = eventId;
     this.eventType = eventType;
     this.routingKey = routingKey;

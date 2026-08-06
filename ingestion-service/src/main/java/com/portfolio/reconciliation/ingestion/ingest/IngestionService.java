@@ -1,6 +1,7 @@
 package com.portfolio.reconciliation.ingestion.ingest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.reconciliation.events.EventEnvelope;
@@ -32,6 +33,7 @@ public class IngestionService {
 
   private static final String PRODUCER = "ingestion-service";
   private static final int EVENT_VERSION = 1;
+  private static final int MAX_IDEMPOTENCY_KEY_LENGTH = 255;
 
   private final RawIngestionRepository rawRepository;
   private final OutboxRepository outboxRepository;
@@ -54,17 +56,23 @@ public class IngestionService {
 
   @Transactional
   public IngestionResult ingest(Source source, String rawBody, String idempotencyKey) {
+    UUID ingestionId = UUID.randomUUID();
+    UUID traceId = UUID.randomUUID();
+
     if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+      if (idempotencyKey.length() > MAX_IDEMPOTENCY_KEY_LENGTH) {
+        return IngestionResult.rejected(
+            ingestionId,
+            traceId,
+            List.of("Idempotency-Key excede " + MAX_IDEMPOTENCY_KEY_LENGTH + " caracteres"));
+      }
       Optional<RawIngestion> existing = rawRepository.findByIdempotencyKey(idempotencyKey);
       if (existing.isPresent()) {
-        RawIngestion e = existing.get();
-        return new IngestionResult(
-            e.getId(), e.getTraceId(), e.getStatus() == RawIngestionStatus.VALIDATED, List.of());
+        return replayDe(existing.get());
       }
     }
 
-    UUID ingestionId = UUID.randomUUID();
-    UUID traceId = UUID.randomUUID();
+    Instant now = Instant.now();
     SourceNormalizer<?> normalizer = registry.forSource(source);
 
     JsonNode tree;
@@ -97,7 +105,7 @@ public class IngestionService {
             eventId,
             EventTypes.TRANSACTION_NORMALIZED,
             EVENT_VERSION,
-            Instant.now(),
+            now,
             traceId,
             PRODUCER,
             payload);
@@ -110,7 +118,7 @@ public class IngestionService {
             RawIngestionStatus.VALIDATED,
             idempotencyKey,
             traceId,
-            Instant.now());
+            now);
     raw.setPublishedEventId(eventId);
     rawRepository.save(raw);
     outboxRepository.save(
@@ -124,6 +132,40 @@ public class IngestionService {
     return IngestionResult.accepted(ingestionId, traceId);
   }
 
+  /**
+   * Replay pós-corrida: se duas requisições com a mesma key correm, uma insere e a outra viola a
+   * constraint UNIQUE (ADR-0008). O controller captura a violação e chama isto para devolver o
+   * registro já gravado, em vez de estourar 500.
+   */
+  @Transactional(readOnly = true)
+  public IngestionResult replayByKey(String idempotencyKey) {
+    return rawRepository
+        .findByIdempotencyKey(idempotencyKey)
+        .map(this::replayDe)
+        .orElseThrow(
+            () -> new IllegalStateException("corrida de idempotência sem registro para a key"));
+  }
+
+  /** Replay de idempotência: devolve o resultado equivalente ao registro já processado. */
+  private IngestionResult replayDe(RawIngestion existing) {
+    if (existing.getStatus() == RawIngestionStatus.VALIDATED) {
+      return IngestionResult.accepted(existing.getId(), existing.getTraceId());
+    }
+    return IngestionResult.rejected(existing.getId(), existing.getTraceId(), errosDe(existing));
+  }
+
+  private List<String> errosDe(RawIngestion raw) {
+    if (raw.getValidationErrors() == null) {
+      return List.of();
+    }
+    try {
+      return objectMapper.readValue(
+          raw.getValidationErrors(), new TypeReference<List<String>>() {});
+    } catch (JsonProcessingException e) {
+      return List.of();
+    }
+  }
+
   private List<String> validate(Object dto) {
     return validator.validate(dto).stream()
         .map(v -> v.getPropertyPath() + " " + v.getMessage())
@@ -132,7 +174,12 @@ public class IngestionService {
   }
 
   private void persistRejected(
-      UUID id, Source source, String rawBody, String idempotencyKey, UUID traceId, List<String> errors) {
+      UUID id,
+      Source source,
+      String rawBody,
+      String idempotencyKey,
+      UUID traceId,
+      List<String> errors) {
     RawIngestion raw =
         new RawIngestion(
             id, source, rawBody, RawIngestionStatus.REJECTED, idempotencyKey, traceId, Instant.now());

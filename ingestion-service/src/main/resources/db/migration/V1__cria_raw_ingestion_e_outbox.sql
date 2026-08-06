@@ -19,7 +19,7 @@ CREATE TABLE outbox (
     event_id     UUID         NOT NULL UNIQUE,
     event_type   VARCHAR(50)  NOT NULL,
     routing_key  VARCHAR(100) NOT NULL,
-    trace_id     UUID,
+    trace_id     UUID         NOT NULL,
     payload      JSONB        NOT NULL,
     created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
     published_at TIMESTAMPTZ,

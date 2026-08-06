@@ -90,7 +90,9 @@ Tem id de pedido próprio **e** a `externalReference` que liga à cobrança.
 
 ## Validação e ciclo de vida
 
-A validação é **síncrona** — acontece antes da resposta. O payload bruto é sempre persistido em `raw_ingestion` (auditoria), inclusive quando rejeitado.
+A validação é **síncrona** — acontece antes da resposta. O payload bruto é persistido em `raw_ingestion` (auditoria) sempre que for um **JSON válido**, inclusive quando rejeitado por validação.
+
+> **Exceção — corpo que não é JSON válido.** A coluna `raw_payload` é `JSONB` e não aceita texto não-JSON. Um corpo sintaticamente inválido (não parseável) é rejeitado com `400` **sem** gerar linha em `raw_ingestion` — não há como auditá-lo numa coluna JSONB. É o único caso sem trilha de auditoria; um corpo JSON válido porém incompatível com a fonte (campos errados) **é** persistido como `REJECTED`.
 
 | Estado (`raw_ingestion.status`) | Quando | Resposta |
 |---|---|---|
