@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Projeto de portfólio (Payment Reconciliation Engine). O **esqueleto e a infraestrutura estão prontos**; a lógica de negócio, não. Cada módulo contém hoje apenas uma classe `@SpringBootApplication` (ou, no caso do `common-events`, árvores `src` vazias com `.gitkeep`). **Não existem testes nem classes de domínio ainda** — no momento, `docs/` é mais autoritativo que o código.
 
-Ao implementar qualquer coisa, `docs/architecture.md`, `docs/adr/` e `docs/events/` são a especificação. Em particular, **`docs/events/` é a fonte da verdade declarada do `common-events`** — os records Java devem espelhar exatamente esses documentos.
+Ao implementar qualquer coisa, `docs/architecture.md`, `docs/adr/` e `docs/events/` são a especificação. Em particular, **`docs/events/` é a fonte da verdade declarada do `common-events`** — os records Java devem espelhar exatamente esses documentos. O vocabulário canônico do domínio está em **`CONTEXT.md`** (glossário). As decisões de serialização/tipagem do `common-events` estão no **ADR-0005** e o padrão de publicação (Outbox) no **ADR-0006**.
 
 ## Convenção de idioma
 
@@ -77,6 +77,7 @@ Violar qualquer uma delas contraria um ADR aceito — levante a questão antes d
 6. **`amount` trafega como string decimal** — converta para `BigDecimal`, nunca `double`.
 7. **O `traceId` nasce na ingestão e é propagado** no envelope de todo evento derivado.
 8. **Schemas são gerenciados explicitamente** — `ddl-auto: none` em todos os serviços. Tabelas novas exigem migração, não auto-DDL do Hibernate.
+9. **Produtores publicam via Outbox, nunca direto** (ADR-0006). Todo evento é gravado na tabela `outbox` na mesma transação do estado de negócio; um relay (`@Scheduled` + `FOR UPDATE SKIP LOCKED`) publica e marca `published_at` só após o confirm do broker. Nunca faça `convertAndSend` direto após um `save` — isso reintroduz o dual-write.
 
 ### Topologia de mensageria
 
@@ -96,4 +97,6 @@ Todo evento usa o mesmo envelope: `eventId`, `eventType`, `eventVersion`, `occur
 
 ## Fluxo de trabalho
 
-Trabalho de implementação acontece em feature branch com PR; o CI (`.github/workflows/ci.yml`, `mvn -B verify` no JDK 21) roda em pushes e PRs para a `main`. Não commite direto na `main`.
+Trabalho de implementação acontece em feature branch com PR; o CI (`.github/workflows/ci.yml`, `mvn -B verify` no JDK 21) roda em pushes e PRs para a `main`. Não commite direto na `main` (o ruleset do repositório exige o check `build` verde antes do merge).
+
+Há subagents de review em `.claude/agents/` — `code-reviewer` (bugs, arquitetura, qualidade) e `security-guard` (segredos, injeção, dados financeiros, mensageria). Use-os antes de abrir o PR.

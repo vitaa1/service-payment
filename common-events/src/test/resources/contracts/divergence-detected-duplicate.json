@@ -1,0 +1,20 @@
+{
+  "eventId": "e9f0a1b2-c3d4-4e5f-9a0b-1c2d3e4f5a60",
+  "eventType": "DivergenceDetected",
+  "eventVersion": 1,
+  "occurredAt": "2026-07-29T13:47:02.310Z",
+  "traceId": "1f0c8a2e-77b4-4d51-9a3c-6e2b0d4f8a11",
+  "producer": "reconciliation-service",
+  "payload": {
+    "caseId": "d1e2f3a4-b5c6-4a7e-8f90-1a2b3c4d5e6f",
+    "matchingKey": "chg_9f8e7d6c5b4a|199.90|2026-07-29",
+    "divergenceType": "DUPLICATE",
+    "caseVersion": 1,
+    "externalReference": "chg_9f8e7d6c5b4a",
+    "details": {
+      "source": "GATEWAY",
+      "occurrences": 2
+    },
+    "detectedAt": "2026-07-29T13:47:02.300Z"
+  }
+}
