@@ -1,7 +1,9 @@
 package com.portfolio.reconciliation.events.payload;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -105,5 +107,42 @@ class DivergenceDetectedPayloadTest {
     DuplicateDetails details = (DuplicateDetails) payload.details();
     assertEquals(Source.GATEWAY, details.source());
     assertEquals(2, details.occurrences());
+  }
+
+  @Test
+  void deveIgnorarCampoDesconhecidoDentroDeDetails() throws Exception {
+    String json =
+        "{"
+            + "\"caseId\":\"d1e2f3a4-b5c6-4a7e-8f90-1a2b3c4d5e6f\","
+            + "\"matchingKey\":\"chg_9f8e7d6c5b4a|199.90|2026-07-29\","
+            + "\"divergenceType\":\"DUPLICATE\","
+            + "\"caseVersion\":1,"
+            + "\"externalReference\":\"chg_9f8e7d6c5b4a\","
+            + "\"details\":{\"source\":\"GATEWAY\",\"occurrences\":2,\"campoNovoDesconhecido\":\"ignorar\"},"
+            + "\"detectedAt\":\"2026-07-29T13:47:02.300Z\""
+            + "}";
+
+    DivergenceDetectedPayload payload = mapper.readValue(json, DivergenceDetectedPayload.class);
+
+    DuplicateDetails details = (DuplicateDetails) payload.details();
+    assertEquals(Source.GATEWAY, details.source());
+  }
+
+  @Test
+  void deveFalharQuandoDivergenceTypeEstaForaDoAllowlist() {
+    String json =
+        "{"
+            + "\"caseId\":\"d1e2f3a4-b5c6-4a7e-8f90-1a2b3c4d5e6f\","
+            + "\"matchingKey\":\"chg_9f8e7d6c5b4a|199.90|2026-07-29\","
+            + "\"divergenceType\":\"HACKED\","
+            + "\"caseVersion\":1,"
+            + "\"externalReference\":\"chg_9f8e7d6c5b4a\","
+            + "\"details\":{\"source\":\"GATEWAY\",\"occurrences\":2},"
+            + "\"detectedAt\":\"2026-07-29T13:47:02.300Z\""
+            + "}";
+
+    assertThrows(
+        JsonMappingException.class,
+        () -> mapper.readValue(json, DivergenceDetectedPayload.class));
   }
 }

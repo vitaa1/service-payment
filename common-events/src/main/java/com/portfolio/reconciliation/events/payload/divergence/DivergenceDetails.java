@@ -9,4 +9,5 @@ package com.portfolio.reconciliation.events.payload.divergence;
  * details} de {@code DivergenceDetectedPayload}, não aqui: {@code EXTERNAL_PROPERTY} precisa de
  * contexto do container (o campo irmão), não da interface isoladamente.
  */
-public sealed interface DivergenceDetails permits DivergentDetails, MissingDetails, DuplicateDetails {}
+public sealed interface DivergenceDetails
+    permits DivergentDetails, MissingDetails, DuplicateDetails {}
