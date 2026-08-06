@@ -51,7 +51,7 @@ Um caso foi avaliado e o resultado **não** é `MATCHED`. É emitido apenas quan
   "producer": "reconciliation-service",
   "payload": {
     "caseId": "d1e2f3a4-b5c6-4a7e-8f90-1a2b3c4d5e6f",
-    "matchingKey": "chg_9f8e7d6c5b4a|199.90|2026-07-29",
+    "matchingKey": "chg_9f8e7d6c5b4a",
     "divergenceType": "DIVERGENT",
     "caseVersion": 2,
     "externalReference": "chg_9f8e7d6c5b4a",

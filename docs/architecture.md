@@ -152,15 +152,13 @@ O reconciliation-service é o coração do sistema. Ele funciona assim:
 
 1. **Recebe** um `TransactionNormalized` (um registro de *uma* fonte).
 2. **Persiste** o registro em `normalized_record`.
-3. **Calcula a matching key** do registro. Proposta inicial:
-   `matchingKey = externalReference + | + amount + | + transactionDate`
-   (a `externalReference` é o identificador comum que as três fontes carregam para a mesma transação, ex.: o id da cobrança no gateway).
+3. **Calcula a matching key** do registro: `matchingKey = externalReference` (só ela — ver [ADR-0009](adr/0009-matching-key-external-reference.md)). A `externalReference` é o identificador comum que as três fontes carregam para a mesma transação; `amount`/`transactionDate` ficam **fora** da chave justamente para poderem ser comparados entre as legs.
 4. **Agrupa** todos os registros com a mesma `matchingKey` em um `reconciliation_case`.
-5. **Avalia** o caso e define o estado:
+5. **Avalia** o caso e define o estado (precedência `DUPLICATE` > `DIVERGENT` > `MISSING` > `MATCHED`; detalhes no [ADR-0010](adr/0010-modelo-avaliacao-reconciliacao.md)):
    - `DUPLICATE` — mais de um registro da **mesma** fonte na mesma chave.
-   - `MISSING` — falta registro de uma fonte esperada (a política de "fontes esperadas" é configurável; começa exigindo GATEWAY + INTERNAL_ORDER).
-   - `DIVERGENT` — fontes presentes, mas `amount`/`currency`/`transactionDate` não conferem entre elas.
-   - `MATCHED` — fontes esperadas presentes e valores consistentes.
+   - `DIVERGENT` — fontes presentes, mas `amount`/`currency`/`transactionDate` não conferem entre elas (`amount` comparado via `BigDecimal.compareTo`).
+   - `MISSING` — falta registro de uma fonte **esperada** (política configurável; default `{GATEWAY, INTERNAL_ORDER}` — o `BANK_STATEMENT` é opcional).
+   - `MATCHED` — fontes esperadas presentes e todos os presentes consistentes.
 6. **Emite** `ReconciliationCompleted` sempre, e `DivergenceDetected` quando o estado não é `MATCHED`.
 
 > **Reavaliação:** como os registros de fontes diferentes chegam em momentos diferentes, um caso pode começar como `MISSING` e depois virar `MATCHED` quando o registro que faltava chega. Cada chegada reavalia o caso e emite o resultado atualizado. Os consumidores tratam isso via idempotência + `occurredAt`/versão do caso.
@@ -226,6 +224,8 @@ Estado central da conciliação.
 | `source` | `VARCHAR` | |
 | `normalized_record_id` | `UUID` FK | |
 | PK | (`case_id`, `source`, `normalized_record_id`) | detecta `DUPLICATE` por fonte |
+
+> **Nota (ADR-0010):** a implementação **dispensa** a `case_member`. Tudo é derivado do `normalized_record` (que já carrega `case_id` + `source`): `DUPLICATE` = mais de um `normalized_record` com o mesmo `case_id` + `source`. Ficam 2 tabelas de domínio + `outbox`.
 
 ### 6.3 notification_db
 

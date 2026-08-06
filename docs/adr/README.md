@@ -16,6 +16,8 @@ Formato inspirado no modelo de Michael Nygard. Use [`template.md`](template.md) 
 | [0006](0006-transactional-outbox.md) | Publicação de eventos via Transactional Outbox | Aceito |
 | [0007](0007-flyway-para-migrations.md) | Flyway para migrations de banco | Aceito |
 | [0008](0008-idempotencia-da-ingestao.md) | Idempotência da ingestão via Idempotency-Key | Aceito |
+| [0009](0009-matching-key-external-reference.md) | Matching key = externalReference | Aceito |
+| [0010](0010-modelo-avaliacao-reconciliacao.md) | Modelo de avaliação e concorrência da reconciliação | Aceito |
 
 ## Status possíveis
 
