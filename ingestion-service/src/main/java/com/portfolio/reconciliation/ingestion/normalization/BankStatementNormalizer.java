@@ -17,6 +17,11 @@ public class BankStatementNormalizer implements SourceNormalizer<BankStatementRe
   }
 
   @Override
+  public Class<BankStatementRequest> requestType() {
+    return BankStatementRequest.class;
+  }
+
+  @Override
   public TransactionNormalizedPayload normalize(UUID ingestionId, BankStatementRequest req) {
     return new TransactionNormalizedPayload(
         ingestionId,

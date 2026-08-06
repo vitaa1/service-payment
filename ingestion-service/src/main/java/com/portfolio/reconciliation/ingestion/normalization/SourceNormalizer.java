@@ -12,5 +12,8 @@ public interface SourceNormalizer<T> {
 
   Source source();
 
+  /** Tipo do DTO bruto desta fonte — usado para desserializar o corpo da request. */
+  Class<T> requestType();
+
   TransactionNormalizedPayload normalize(UUID ingestionId, T request);
 }

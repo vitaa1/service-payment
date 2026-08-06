@@ -19,6 +19,11 @@ public class GatewayNormalizer implements SourceNormalizer<GatewayRequest> {
   }
 
   @Override
+  public Class<GatewayRequest> requestType() {
+    return GatewayRequest.class;
+  }
+
+  @Override
   public TransactionNormalizedPayload normalize(UUID ingestionId, GatewayRequest req) {
     Map<String, Object> metadata = new LinkedHashMap<>();
     if (req.gatewayTxnId() != null) {

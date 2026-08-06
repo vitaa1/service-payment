@@ -17,6 +17,11 @@ public class InternalOrderNormalizer implements SourceNormalizer<InternalOrderRe
   }
 
   @Override
+  public Class<InternalOrderRequest> requestType() {
+    return InternalOrderRequest.class;
+  }
+
+  @Override
   public TransactionNormalizedPayload normalize(UUID ingestionId, InternalOrderRequest req) {
     Map<String, Object> metadata = new LinkedHashMap<>();
     metadata.put("orderId", req.orderId());
