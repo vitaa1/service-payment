@@ -10,37 +10,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.reconciliation.ingestion.outbox.OutboxRepository;
 import com.portfolio.reconciliation.ingestion.rawingestion.RawIngestionRepository;
 import com.portfolio.reconciliation.ingestion.rawingestion.RawIngestionStatus;
+import com.portfolio.reconciliation.ingestion.support.AbstractIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-/** Fatia REST: POST /ingestion/{source} de ponta a ponta contra Postgres real (Testcontainers). */
-@SpringBootTest(
-    properties =
-        "spring.autoconfigure.exclude="
-            + "org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration")
+/** POST /ingestion/{source} de ponta a ponta contra Postgres real (Testcontainers). */
 @AutoConfigureMockMvc
-@Testcontainers
-class IngestionControllerIT {
-
-  @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-
-  @DynamicPropertySource
-  static void datasource(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
+class IngestionControllerIT extends AbstractIntegrationTest {
 
   private static final String GATEWAY_VALIDO =
       """

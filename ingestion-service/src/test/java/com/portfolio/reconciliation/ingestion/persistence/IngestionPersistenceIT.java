@@ -10,38 +10,15 @@ import com.portfolio.reconciliation.ingestion.outbox.OutboxRepository;
 import com.portfolio.reconciliation.ingestion.rawingestion.RawIngestion;
 import com.portfolio.reconciliation.ingestion.rawingestion.RawIngestionRepository;
 import com.portfolio.reconciliation.ingestion.rawingestion.RawIngestionStatus;
+import com.portfolio.reconciliation.ingestion.support.AbstractIntegrationTest;
 import java.time.Instant;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-/**
- * Fatia de persistência: confirma que a migration Flyway sobe o schema e que as entidades
- * (raw_ingestion, outbox) persistem e recuperam corretamente, incluindo as constraints.
- */
-@SpringBootTest(
-    properties =
-        "spring.autoconfigure.exclude="
-            + "org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration")
-@Testcontainers
-class IngestionPersistenceIT {
-
-  @Container
-  static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
-
-  @DynamicPropertySource
-  static void datasource(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", postgres::getJdbcUrl);
-    registry.add("spring.datasource.username", postgres::getUsername);
-    registry.add("spring.datasource.password", postgres::getPassword);
-  }
+/** Confirma que a migration Flyway sobe o schema e que raw_ingestion/outbox persistem. */
+class IngestionPersistenceIT extends AbstractIntegrationTest {
 
   @Autowired RawIngestionRepository rawIngestionRepository;
   @Autowired OutboxRepository outboxRepository;
@@ -70,7 +47,7 @@ class IngestionPersistenceIT {
 
   @Test
   void deveImporUniqueNaIdempotencyKey() {
-    String key = "dup-key";
+    String key = "dup-key-" + UUID.randomUUID();
     rawIngestionRepository.saveAndFlush(novoRaw(key));
 
     assertThrows(
