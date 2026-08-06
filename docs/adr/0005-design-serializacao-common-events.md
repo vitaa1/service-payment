@@ -15,7 +15,7 @@ O módulo só pode depender de `jackson-annotations` (sem Spring), por força do
 
 2. **Envelope genérico, desserializado por tipo concreto.** `EventEnvelope<T extends EventPayload>`. Cada consumidor desserializa para o tipo concreto que sua fila carrega (uma fila = um `eventType`), inferido pela assinatura do `@RabbitListener`. **Sem** `@JsonTypeInfo`/default typing no envelope.
 
-3. **`DivergenceDetails` como interface selada com allowlist.** O campo `details` do `DivergenceDetected` é um tipo-união fechado (`DivergentDetails` | `MissingDetails` | `DuplicateDetails`), desserializado polimorficamente via `@JsonSubTypes` (allowlist explícito) discriminado por `divergenceType` (`EXTERNAL_PROPERTY`). Blindado por testes de round-trip.
+3. **`DivergenceDetails` como interface selada com allowlist.** O campo `details` do `DivergenceDetected` é um tipo-união fechado (`DivergentDetails` | `MissingDetails` | `DuplicateDetails`), desserializado polimorficamente via `@JsonSubTypes` (allowlist explícito) discriminado por `divergenceType` (`EXTERNAL_PROPERTY`). As anotações `@JsonTypeInfo`/`@JsonSubTypes` ficam no **componente `details` do record** `DivergenceDetectedPayload`, não na interface `DivergenceDetails`: `EXTERNAL_PROPERTY` precisa do contexto do container (o campo irmão `divergenceType`), que só existe no ponto de uso. Blindado por testes de round-trip para as três variantes.
 
 4. **Enums estritos e separados.** `Source`, `ReconciliationStatus` e `DivergenceType` são enums distintos (um `DivergenceType` nunca é `MATCHED` — a regra vive no tipo). Valor desconhecido na desserialização **falha** (mensagem → DLQ), não é mapeado para um `UNKNOWN`.
 
@@ -39,7 +39,7 @@ O módulo só pode depender de `jackson-annotations` (sem Spring), por força do
 
 ### Negativas / custos
 - Valor de enum novo é mudança **incompatível** (acopla deploy de produtor/consumidor) — opção deliberada de falhar cedo.
-- `EXTERNAL_PROPERTY` do Jackson é sensível de configurar com records.
+- `EXTERNAL_PROPERTY` do Jackson é sensível de configurar com records: anotar a **interface** `DivergenceDetails` falha na desserialização (`InvalidTypeIdException`, "missing type id") porque o construtor canônico do record exige todo o estado de uma vez, sem a fase de resolução tardia que `EXTERNAL_PROPERTY` assume em beans mutáveis. A anotação precisa ficar no **componente do record que usa o tipo** (`details` em `DivergenceDetectedPayload`), não na interface — descoberto durante a implementação, coberto por teste de desserialização (não só serialização) para as 3 variantes.
 - Cada consumidor declara o tipo concreto que espera (boilerplate explícito).
 
 ### Mitigações
