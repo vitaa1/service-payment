@@ -14,6 +14,8 @@ Formato inspirado no modelo de Michael Nygard. Use [`template.md`](template.md) 
 | [0004](0004-cqrs-no-report-service.md) | CQRS parcimonioso no report-service | Aceito |
 | [0005](0005-design-serializacao-common-events.md) | Design de serialização e tipagem do common-events | Aceito |
 | [0006](0006-transactional-outbox.md) | Publicação de eventos via Transactional Outbox | Aceito |
+| [0007](0007-flyway-para-migrations.md) | Flyway para migrations de banco | Aceito |
+| [0008](0008-idempotencia-da-ingestao.md) | Idempotência da ingestão via Idempotency-Key | Aceito |
 
 ## Status possíveis
 

@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Projeto de portfólio (Payment Reconciliation Engine). O **esqueleto e a infraestrutura estão prontos**; a lógica de negócio, não. Cada módulo contém hoje apenas uma classe `@SpringBootApplication` (ou, no caso do `common-events`, árvores `src` vazias com `.gitkeep`). **Não existem testes nem classes de domínio ainda** — no momento, `docs/` é mais autoritativo que o código.
 
-Ao implementar qualquer coisa, `docs/architecture.md`, `docs/adr/` e `docs/events/` são a especificação. Em particular, **`docs/events/` é a fonte da verdade declarada do `common-events`** — os records Java devem espelhar exatamente esses documentos. O vocabulário canônico do domínio está em **`CONTEXT.md`** (glossário). As decisões de serialização/tipagem do `common-events` estão no **ADR-0005** e o padrão de publicação (Outbox) no **ADR-0006**.
+Ao implementar qualquer coisa, `docs/architecture.md`, `docs/adr/` e `docs/events/` são a especificação. Em particular, **`docs/events/` é a fonte da verdade declarada do `common-events`** — os records Java devem espelhar exatamente esses documentos. O vocabulário canônico do domínio está em **`CONTEXT.md`** (glossário). As decisões de serialização/tipagem do `common-events` estão no **ADR-0005** e o padrão de publicação (Outbox) no **ADR-0006**. Os **formatos brutos de entrada** de cada fonte (o contrato REST que o `ingestion-service` aceita, análogo de entrada do `docs/events/`) estão em **`docs/ingestion/source-formats.md`**.
 
 ## Convenção de idioma
 
@@ -93,6 +93,7 @@ Todo evento usa o mesmo envelope: `eventId`, `eventType`, `eventVersion`, `occur
 - O código existente está formatado com **google-java-format** (indentação de 2 espaços). O Spotless foi adicionado e depois removido do build de propósito (`ec0e328`), então a formatação não é imposta automaticamente — siga o estilo existente manualmente.
 - Gestão de versões e dependências vive no POM pai (`dependencyManagement` + BOMs do Testcontainers e do Resilience4j). Os módulos filhos declaram as starters **sem versão**.
 - Testes: JUnit 5 + Mockito para unitários; Testcontainers (Postgres + RabbitMQ) para integração. As dependências do Testcontainers já estão declaradas em todos os POMs de serviço.
+- Migrations de banco com **Flyway** (ADR-0007): SQL forward-only em `<serviço>/src/main/resources/db/migration`, nomeadas `V<n>__<descricao>.sql`. Não use auto-DDL do Hibernate.
 - Decisões de arquitetura novas rendem um ADR em `docs/adr/` usando o `template.md`, mais uma entrada na tabela de índice dos ADRs.
 
 ## Fluxo de trabalho

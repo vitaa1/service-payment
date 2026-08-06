@@ -17,6 +17,25 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    # Confirmação do broker: o relay só marca published_at após o ack (ADR-0006).
+    publisher-confirm-type: correlated
+  # Pool dedicado para os @Scheduled (relay + purge não competem pela mesma thread).
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+# Defaults do Outbox relay (ADR-0006). Ajustáveis por ambiente.
+ingestion:
+  outbox:
+    relay:
+      interval-ms: 1000
+      batch-size: 100
+      max-attempts: 5
+      confirm-timeout-ms: 5000
+    purge:
+      interval-ms: 86400000   # 1x/dia
+      retention-days: 7
 
 management:
   endpoints:

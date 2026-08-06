@@ -36,6 +36,8 @@ Adotamos o **Transactional Outbox** nos serviços produtores:
 - **Latência de polling** (sub-segundo, ajustável) e carga constante pequena no banco.
 - **Duplicatas** possíveis (crash entre publish e marcação) — empurradas para a idempotência do consumidor.
 - Mais duas tabelas de trabalho e dois `@Scheduled` (relay + purge) por serviço produtor.
+- **O relay segura os locks (`FOR UPDATE`) das linhas durante o publish síncrono** (espera do confirm). Com broker lento, a transação — e a conexão do pool — fica aberta por até `batch-size × confirm-timeout`. Mitigado com `batch-size` pequeno; um refinamento futuro é separar "reivindicar" (transação curta) de "publicar" (fora de transação), atualizando `published_at` numa segunda transação.
+- **Poison message do lado produtor:** ao esgotar `max-attempts`, a linha deixa de ser selecionada e hoje só há `log.warn`. Uma métrica/alerta sobre `attempts >= max-attempts AND published_at IS NULL` fica como evolução (fase de observabilidade).
 
 ### Mitigações
 - Consumidores **deduplicam por `eventId`** (regra transversal já existente), absorvendo as duplicatas.
