@@ -49,8 +49,21 @@ import org.springframework.test.context.TestPropertySource;
  * ("'beans' must not be empty") — o mock não populam o {@code Map<String, MailSender>} que o
  * health contributor espera. Sem relação com a lógica testada aqui, então desligamos só o
  * indicador de saúde do mail nesta classe.
+ *
+ * <p>{@code spring.rabbitmq.listener.simple.auto-startup=true}: a {@link AbstractIntegrationTest}
+ * desliga o auto-startup do listener por padrão, porque cada IT sobe seu próprio contexto (e,
+ * portanto, seu próprio {@code DivergenceDetectedListener}) contra o mesmo broker compartilhado
+ * do Testcontainers — com mais de um listener ativo, os consumidores concorrem pela mesma fila
+ * física e roubam mensagens uns dos outros. Esta é a única classe que de fato precisa consumir
+ * mensagens publicadas na exchange, então liga o listener de volta aqui — propriedades de
+ * {@code @TestPropertySource} declaradas na subclasse sobrepõem as da superclasse para a mesma
+ * chave.
  */
-@TestPropertySource(properties = "management.health.mail.enabled=false")
+@TestPropertySource(
+    properties = {
+      "management.health.mail.enabled=false",
+      "spring.rabbitmq.listener.simple.auto-startup=true"
+    })
 class NotificationEndToEndIT extends AbstractIntegrationTest {
 
   @Autowired RabbitTemplate rabbitTemplate;
