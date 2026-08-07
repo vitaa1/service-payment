@@ -35,5 +35,11 @@ public abstract class AbstractIntegrationTest {
     registry.add("spring.rabbitmq.port", RABBIT::getAmqpPort);
     registry.add("spring.rabbitmq.username", RABBIT::getAdminUsername);
     registry.add("spring.rabbitmq.password", RABBIT::getAdminPassword);
+    // Retry rápido nos testes — os ITs de poison message não esperam o backoff de produção.
+    registry.add("spring.rabbitmq.listener.simple.retry.initial-interval", () -> "100ms");
+    registry.add("spring.rabbitmq.listener.simple.retry.max-attempts", () -> "2");
+    // Relay/purge com intervalo alto — os testes chamam o relay diretamente.
+    registry.add("reconciliation.outbox.relay.interval-ms", () -> "3600000");
+    registry.add("reconciliation.outbox.purge.interval-ms", () -> "3600000");
   }
 }
