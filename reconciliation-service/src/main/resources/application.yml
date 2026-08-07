@@ -18,6 +18,13 @@ spring:
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+# Política de fontes esperadas para MATCHED (ADR-0010). BANK_STATEMENT fica de fora
+# de propósito — agrega confiança quando presente, mas sua ausência não é MISSING.
+reconciliation:
+  expected-sources:
+    - GATEWAY
+    - INTERNAL_ORDER
+
 management:
   endpoints:
     web:
