@@ -18,6 +18,7 @@ Formato inspirado no modelo de Michael Nygard. Use [`template.md`](template.md) 
 | [0008](0008-idempotencia-da-ingestao.md) | Idempotência da ingestão via Idempotency-Key | Aceito |
 | [0009](0009-matching-key-external-reference.md) | Matching key = externalReference | Aceito |
 | [0010](0010-modelo-avaliacao-reconciliacao.md) | Modelo de avaliação e concorrência da reconciliação | Aceito |
+| [0011](0011-modelo-entrega-idempotencia-notificacao.md) | Modelo de entrega e idempotência da notificação | Aceito |
 
 ## Status possíveis
 
