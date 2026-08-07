@@ -54,6 +54,6 @@ Um registro de transação, vindo de **uma** fonte, foi validado e normalizado p
 ## Notas para o consumidor (reconciliation-service)
 
 - **Idempotência:** deduplicar por `eventId` (`normalized_record.event_id UNIQUE`).
-- **Matching key:** derivada de `externalReference | amount | transactionDate` (ver [architecture.md §5](../architecture.md)).
+- **Matching key:** `= externalReference` (só ela — ver [ADR-0009](../adr/0009-matching-key-external-reference.md) e [architecture.md §5](../architecture.md)). `amount`/`transactionDate` ficam fora da chave para poderem ser comparados entre as legs.
 - Cada `TransactionNormalized` representa **uma** perna da transação (uma fonte). O caso só fica `MATCHED` quando as fontes esperadas chegam e conferem — pernas chegam em momentos diferentes.
 - `amount` chega como string decimal; converter para `BigDecimal` (nunca `double`) ao comparar.

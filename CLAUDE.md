@@ -60,7 +60,7 @@ Cliente --REST--> report-service (lê a própria projeção)                    
 ```
 
 - **ingestion-service** — valida e normaliza payloads brutos de três fontes (`GATEWAY`, `BANK_STATEMENT`, `INTERNAL_ORDER`), persiste o corpo cru para auditoria, publica `TransactionNormalized` e devolve `202 Accepted`. Nenhuma lógica de conciliação ("ingestão burra, núcleo inteligente").
-- **reconciliation-service** — o núcleo. Agrupa registros por `matchingKey` (`externalReference | amount | transactionDate`) em um `reconciliation_case`, avalia o caso como `MATCHED | DIVERGENT | MISSING | DUPLICATE`, emite `ReconciliationCompleted` sempre e `DivergenceDetected` só quando há problema. Os casos são **reavaliados** conforme as pernas seguintes chegam, então um caso pode ir de `MISSING` para `MATCHED`.
+- **reconciliation-service** — o núcleo. Agrupa registros por `matchingKey` (= `externalReference`, ver ADR-0009) em um `reconciliation_case`, avalia o caso como `MATCHED | DIVERGENT | MISSING | DUPLICATE`, emite `ReconciliationCompleted` sempre e `DivergenceDetected` só quando há problema. Os casos são **reavaliados** conforme as pernas seguintes chegam, então um caso pode ir de `MISSING` para `MATCHED`.
 - **notification-service** — consome `DivergenceDetected`, envia e-mail e registra em `notification_log`.
 - **report-service** — lado de leitura do CQRS. Mantém uma projeção desnormalizada alimentada exclusivamente por eventos; atende as consultas REST a partir dela.
 - **common-events** — envelope de evento + records de payload + constantes de roteamento. Nada além disso.

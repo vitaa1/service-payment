@@ -23,7 +23,7 @@ class ReconciliationCompletedPayloadTest {
     ReconciliationCompletedPayload payload =
         new ReconciliationCompletedPayload(
             UUID.fromString("d1e2f3a4-b5c6-4a7e-8f90-1a2b3c4d5e6f"),
-            "chg_9f8e7d6c5b4a|199.90|2026-07-29",
+            "chg_9f8e7d6c5b4a",
             ReconciliationStatus.MATCHED,
             3,
             "chg_9f8e7d6c5b4a",

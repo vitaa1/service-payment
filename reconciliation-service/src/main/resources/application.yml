@@ -17,6 +17,40 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    # Confirmação do broker: o relay só marca published_at após o ack (ADR-0006).
+    publisher-confirm-type: correlated
+    listener:
+      simple:
+        # Retry nativo com backoff exponencial; ao esgotar, rejeita (não recoloca na fila) —
+        # o broker então dead-letra para a DLQ via o argumento da fila (ADR-0010, decisão 6).
+        retry:
+          enabled: true
+          initial-interval: 500ms
+          multiplier: 2
+          max-attempts: 5
+        default-requeue-rejected: false
+  # Pool dedicado para os @Scheduled (relay + purge não competem pela mesma thread).
+  task:
+    scheduling:
+      pool:
+        size: 2
+
+# Política de fontes esperadas para MATCHED (ADR-0010). BANK_STATEMENT fica de fora
+# de propósito — agrega confiança quando presente, mas sua ausência não é MISSING.
+reconciliation:
+  expected-sources:
+    - GATEWAY
+    - INTERNAL_ORDER
+  # Defaults do Outbox relay (ADR-0006), duplicado do ingestion-service (ADR-0010).
+  outbox:
+    relay:
+      interval-ms: 1000
+      batch-size: 100
+      max-attempts: 5
+      confirm-timeout-ms: 5000
+    purge:
+      interval-ms: 86400000   # 1x/dia
+      retention-days: 7
 
 management:
   endpoints:

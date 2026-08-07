@@ -17,7 +17,7 @@ Um registro normalizado de **uma** `Source` para uma transação. Uma transaçã
 _Evitar_: registro, entrada, linha
 
 **Matching Key**:
-A chave que agrupa as legs da mesma transação: `externalReference | amount | transactionDate`.
+A chave que agrupa as legs da mesma transação: a `externalReference` (só ela — ver ADR-0009). `amount`/`transactionDate` ficam de fora da chave para poderem ser *comparados* entre as legs.
 _Evitar_: chave de agrupamento, chave de correlação
 
 **Reconciliation Case** (caso de conciliação):
