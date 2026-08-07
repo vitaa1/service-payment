@@ -111,3 +111,9 @@ Hoje há **health checks** via Actuator nos 4 serviços (`/actuator/health`, inc
 - **API Gateway** — só há 2 bordas REST (ingestion, report); um gateway aqui seria "teatro de microsserviços".
 - **Saga** — o fluxo é coreografia por eventos, sem transação distribuída/compensação; forçar uma Saga seria *cargo-cult*.
 - **Dashboard** — é frontend, fora do valor central (backend Java); o `report-service` já expõe as consultas via REST.
+
+### notification-service — evoluções não implementadas nesta fatia
+
+- **Roteamento de destinatário por `divergenceType`/severidade.** Hoje o `to` é único e estático (`NotificationProperties`); rotear por tipo de problema é aditivo e não muda o modelo de dedup (ADR-0011).
+- **E-mail HTML/template.** O corpo hoje é texto puro (`SimpleMailMessage`); um template HTML trocaria só o `EmailComposer`, sem tocar no fluxo de envio/persistência.
+- **Canais além de e-mail (SMS, Slack, etc.).** Exigiria extrair uma porta (`MailNotifier`/`NotificationChannel`) entre `NotificationService` e o envio concreto — não feito agora por YAGNI (só há um canal).
