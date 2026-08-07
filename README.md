@@ -115,5 +115,5 @@ Hoje há **health checks** via Actuator nos 4 serviços (`/actuator/health`, inc
 ### notification-service — evoluções não implementadas nesta fatia
 
 - **Roteamento de destinatário por `divergenceType`/severidade.** Hoje o `to` é único e estático (`NotificationProperties`); rotear por tipo de problema é aditivo e não muda o modelo de dedup (ADR-0011).
-- **E-mail HTML/template.** O corpo hoje é texto puro (`SimpleMailMessage`); um template HTML trocaria só o `EmailComposer`, sem tocar no fluxo de envio/persistência.
+- **E-mail HTML/template.** O corpo hoje é texto puro (`SimpleMailMessage`); um template HTML mudaria o corpo montado pelo `EmailComposer` e a construção da mensagem em `NotificationService` (troca de `SimpleMailMessage` por `MimeMessage`/`MimeMessageHelper`), sem tocar na persistência/dedup.
 - **Canais além de e-mail (SMS, Slack, etc.).** Exigiria extrair uma porta (`MailNotifier`/`NotificationChannel`) entre `NotificationService` e o envio concreto — não feito agora por YAGNI (só há um canal).
