@@ -17,6 +17,16 @@ spring:
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
+    listener:
+      simple:
+        # Retry nativo com backoff exponencial; ao esgotar, rejeita (não recoloca na fila) —
+        # o broker então dead-letra para a DLQ via o argumento da fila (ADR-0011).
+        retry:
+          enabled: true
+          initial-interval: 500ms
+          multiplier: 2
+          max-attempts: 5
+        default-requeue-rejected: false
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
@@ -29,3 +39,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Endereços estáticos de envio (ADR-0011 — sem conceito de contato/cliente no domínio).
+notification:
+  from: no-reply@reconciliation.local
+  to: ops@reconciliation.local
