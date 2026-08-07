@@ -16,9 +16,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Topologia do reconciliation-service: produtor (declara a exchange que publica, Decisão 5a) e
- * consumidor (declara sua própria fila + DLQ + binding, ADR-0010 decisão 6a — nomes de fila não
- * pertencem ao common-events, ADR-0005). {@code @EnableScheduling} liga o relay e o purge da
- * outbox.
+ * consumidor (declara sua própria fila + DLQ + binding, ADR-0010 decisão 6a — nomes de fila
+ * não pertencem ao common-events, ADR-0005). {@code @EnableScheduling} liga o relay e o purge
+ * da outbox.
  */
 @Configuration
 @EnableScheduling
@@ -65,8 +65,8 @@ public class RabbitConfig {
   }
 
   /**
-   * Habilita a desserialização do envelope pelo tipo concreto do parâmetro do listener (Decisão 2
-   * / ADR-0005) — sem cabeçalho de tipo, uma fila carrega só um eventType.
+   * Habilita a desserialização do envelope pelo tipo concreto do parâmetro do listener
+   * (Decisão 2 / ADR-0005) — sem cabeçalho de tipo, uma fila carrega só um eventType.
    */
   @Bean
   public Jackson2JsonMessageConverter messageConverter(ObjectMapper objectMapper) {

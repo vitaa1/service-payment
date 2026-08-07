@@ -98,7 +98,9 @@ class CaseEvaluatorTest {
     DivergentDetails details = (DivergentDetails) result.details();
     assertEquals("amount", details.field());
     assertEquals(
-        0, new BigDecimal("199.90").compareTo(new BigDecimal(details.values().get(Source.GATEWAY))));
+        0,
+        new BigDecimal("199.90")
+            .compareTo(new BigDecimal(details.values().get(Source.GATEWAY))));
     assertEquals(
         0,
         new BigDecimal("189.90")
@@ -170,6 +172,23 @@ class CaseEvaluatorTest {
                 rec(Source.GATEWAY, "189.90", "BRL", DATE)));
 
     assertEquals(ReconciliationStatus.DUPLICATE, result.status());
+  }
+
+  @Test
+  void duasFontesDuplicadasSimultaneamenteReportaAPrimeiraEmOrdemDoEnum() {
+    // GATEWAY (ordinal 0) e INTERNAL_ORDER (ordinal 2) duplicados — o desempate é
+    // determinístico pela ordem do enum Source: GATEWAY vence.
+    CaseEvaluation result =
+        evaluator.evaluate(
+            List.of(
+                rec(Source.INTERNAL_ORDER, "199.90", "BRL", DATE),
+                rec(Source.INTERNAL_ORDER, "199.90", "BRL", DATE),
+                rec(Source.GATEWAY, "199.90", "BRL", DATE),
+                rec(Source.GATEWAY, "199.90", "BRL", DATE)));
+
+    assertEquals(ReconciliationStatus.DUPLICATE, result.status());
+    DuplicateDetails details = (DuplicateDetails) result.details();
+    assertEquals(Source.GATEWAY, details.source());
   }
 
   @Test

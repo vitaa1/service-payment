@@ -19,6 +19,7 @@ import com.portfolio.reconciliation.reconciliation.support.AbstractIntegrationTe
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -77,8 +78,10 @@ class ReconciliationServiceIT extends AbstractIntegrationTest {
 
     List<OutboxEvent> events = outboxRepository.findAll();
     assertEquals(2, events.size(), "ReconciliationCompleted + DivergenceDetected");
-    assertTrue(events.stream().anyMatch(e -> e.getEventType().equals(EventTypes.RECONCILIATION_COMPLETED)));
-    assertTrue(events.stream().anyMatch(e -> e.getEventType().equals(EventTypes.DIVERGENCE_DETECTED)));
+    String completedType = EventTypes.RECONCILIATION_COMPLETED;
+    assertTrue(events.stream().anyMatch(e -> e.getEventType().equals(completedType)));
+    assertTrue(
+        events.stream().anyMatch(e -> e.getEventType().equals(EventTypes.DIVERGENCE_DETECTED)));
   }
 
   @Test
@@ -106,10 +109,12 @@ class ReconciliationServiceIT extends AbstractIntegrationTest {
     ReconciliationCase caseRow = caseRepository.findByMatchingKey(ref).orElseThrow();
     assertEquals(ReconciliationStatus.DIVERGENT, caseRow.getStatus());
 
+    // Duas DivergenceDetected na outbox (leg1: MISSING; leg2: DIVERGENT) — pega a de maior id
+    // (mais recente), sem depender de ordem de iteração não garantida (nunca assuma ordem).
     OutboxEvent divergence =
         outboxRepository.findAll().stream()
             .filter(e -> e.getEventType().equals(EventTypes.DIVERGENCE_DETECTED))
-            .reduce((first, second) -> second) // a mais recente
+            .max(Comparator.comparing(OutboxEvent::getId))
             .orElseThrow();
     JsonNode json = objectMapper.readTree(divergence.getPayload());
     assertEquals("amount", json.get("payload").get("details").get("field").asText());
@@ -134,7 +139,8 @@ class ReconciliationServiceIT extends AbstractIntegrationTest {
     service.handle(first);
     service.handle(replay);
 
-    assertEquals(1, recordRepository.findByCaseId(caseRepository.findByMatchingKey(ref).orElseThrow().getId()).size());
+    UUID caseId = caseRepository.findByMatchingKey(ref).orElseThrow().getId();
+    assertEquals(1, recordRepository.findByCaseId(caseId).size());
     assertEquals(2, outboxRepository.count(), "reentrega não gera novos eventos");
     assertEquals(1, caseRepository.findByMatchingKey(ref).orElseThrow().getVersion());
   }
@@ -150,7 +156,8 @@ class ReconciliationServiceIT extends AbstractIntegrationTest {
         () -> {
           ready.countDown();
           await(go);
-          service.handle(envelope(Source.GATEWAY, ref, "199.90", "BRL", LocalDate.parse("2026-07-29")));
+          service.handle(
+              envelope(Source.GATEWAY, ref, "199.90", "BRL", LocalDate.parse("2026-07-29")));
         };
     Runnable order =
         () -> {
@@ -167,10 +174,14 @@ class ReconciliationServiceIT extends AbstractIntegrationTest {
     pool.shutdown();
     assertTrue(pool.awaitTermination(15, TimeUnit.SECONDS));
 
-    assertEquals(1, caseRepository.findAll().stream().filter(c -> c.getMatchingKey().equals(ref)).count());
+    assertEquals(
+        1, caseRepository.findAll().stream().filter(c -> c.getMatchingKey().equals(ref)).count());
     ReconciliationCase caseRow = caseRepository.findByMatchingKey(ref).orElseThrow();
     assertEquals(2, recordRepository.findByCaseId(caseRow.getId()).size());
-    assertEquals(2, caseRow.getVersion(), "as duas reavaliações devem ter incrementado a versão sem se perder");
+    assertEquals(
+        2,
+        caseRow.getVersion(),
+        "as duas reavaliações devem ter incrementado a versão sem se perder");
     assertEquals(ReconciliationStatus.MATCHED, caseRow.getStatus());
   }
 

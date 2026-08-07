@@ -21,8 +21,8 @@ import java.util.function.Function;
 
 /**
  * Avalia um caso de conciliação a partir das pernas presentes (ADR-0010). Precedência: {@code
- * DUPLICATE > DIVERGENT > MISSING > MATCHED}. Lógica de domínio pura, sem infraestrutura — testada
- * por unit test.
+ * DUPLICATE > DIVERGENT > MISSING > MATCHED}. Lógica de domínio pura, sem infraestrutura —
+ * testada por unit test.
  */
 public class CaseEvaluator {
 

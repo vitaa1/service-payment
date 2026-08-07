@@ -11,8 +11,8 @@ public interface OutboxRepository extends JpaRepository<OutboxEvent, Long> {
 
   /**
    * Trava as linhas pendentes para o relay, pulando as já travadas por outra instância
-   * ({@code SKIP LOCKED}), em ordem de inserção. Deve rodar dentro de uma transação (o lock vale
-   * até o commit). Ver ADR-0006.
+   * ({@code SKIP LOCKED}), em ordem de inserção. Deve rodar dentro de uma transação (o lock
+   * vale até o commit). Ver ADR-0006.
    */
   @Query(
       value =

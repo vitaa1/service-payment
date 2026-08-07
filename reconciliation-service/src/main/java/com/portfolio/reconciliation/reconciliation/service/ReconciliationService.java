@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.reconciliation.events.DivergenceType;
 import com.portfolio.reconciliation.events.EventEnvelope;
+import com.portfolio.reconciliation.events.EventPayload;
 import com.portfolio.reconciliation.events.ReconciliationStatus;
 import com.portfolio.reconciliation.events.payload.DivergenceDetectedPayload;
 import com.portfolio.reconciliation.events.payload.ReconciliationCompletedPayload;
@@ -30,8 +31,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /**
  * Orquestra a reavaliação de um caso a cada {@code TransactionNormalized} recebido (ADR-0010):
- * dedup por {@code eventId}, lock pessimista/criação do caso, avaliação, persistência e gravação
- * dos eventos na outbox — tudo numa única transação.
+ * dedup por {@code eventId}, lock pessimista/criação do caso, avaliação, persistência e
+ * gravação dos eventos na outbox — tudo numa única transação.
  */
 @Service
 public class ReconciliationService {
@@ -134,6 +135,9 @@ public class ReconciliationService {
     if (existing.isPresent()) {
       return new CaseLookup(existing.get(), false);
     }
+    // MISSING é só o status inicial exigido pelo construtor — nunca fica visível: a linha só
+    // existe dentro desta transação, que sempre a sobrescreve com o resultado real da
+    // avaliação antes de retornar (ver processInTransaction).
     ReconciliationCase created =
         caseRepository.saveAndFlush(
             new ReconciliationCase(UUID.randomUUID(), matchingKey, ReconciliationStatus.MISSING));
@@ -184,8 +188,8 @@ public class ReconciliationService {
     }
   }
 
-  private <T extends com.portfolio.reconciliation.events.EventPayload>
-      EventEnvelope<T> envelopeFor(String eventType, Instant occurredAt, UUID traceId, T payload) {
+  private <T extends EventPayload> EventEnvelope<T> envelopeFor(
+      String eventType, Instant occurredAt, UUID traceId, T payload) {
     return new EventEnvelope<>(
         UUID.randomUUID(), eventType, EVENT_VERSION, occurredAt, traceId, PRODUCER, payload);
   }

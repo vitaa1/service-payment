@@ -21,7 +21,7 @@ O `reconciliation-service` é o núcleo do sistema. Ele consome `TransactionNorm
 
 5. **`DivergenceDetected.details` (tipo `DIVERGENT`)** reporta **um** campo — precedência `amount` > `currency` > `transactionDate` — com o `values` por fonte presente.
 
-6. **`DUPLICATE`** = mais de um `normalized_record` com o mesmo `case_id` + `source` (deriva do `normalized_record`; a tabela `case_member` do `§6.2` é dispensada).
+6. **`DUPLICATE`** = mais de um `normalized_record` com o mesmo `case_id` + `source` (deriva do `normalized_record`; a tabela `case_member` do `§6.2` é dispensada). Se mais de uma fonte estiver duplicada simultaneamente, reporta-se a **primeira em ordem do enum `Source`** (`GATEWAY` > `BANK_STATEMENT` > `INTERNAL_ORDER`) — desempate determinístico, sem significado de negócio.
 
 ### Concorrência e idempotência
 

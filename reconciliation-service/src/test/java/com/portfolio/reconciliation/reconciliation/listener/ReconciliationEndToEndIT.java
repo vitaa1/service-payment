@@ -106,8 +106,11 @@ class ReconciliationEndToEndIT extends AbstractIntegrationTest {
     awaitCaseComStatus(ref, ReconciliationStatus.MISSING);
     relay.publishPending();
 
-    assertNotNull(rabbitTemplate.receive(COMPLETED_QUEUE, 5000), "ReconciliationCompleted deve chegar");
-    assertNotNull(rabbitTemplate.receive(DIVERGENCE_QUEUE, 5000), "DivergenceDetected (MISSING) deve chegar");
+    assertNotNull(
+        rabbitTemplate.receive(COMPLETED_QUEUE, 5000), "ReconciliationCompleted deve chegar");
+    assertNotNull(
+        rabbitTemplate.receive(DIVERGENCE_QUEUE, 5000),
+        "DivergenceDetected (MISSING) deve chegar");
   }
 
   @Test

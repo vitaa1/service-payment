@@ -195,11 +195,10 @@ Estado central da conciliação.
 | `id` | `UUID` PK | |
 | `event_id` | `UUID` UNIQUE | dedup de `TransactionNormalized` (idempotência) |
 | `source` | `VARCHAR` | fonte de origem |
-| `external_reference` | `VARCHAR` | id comum entre as fontes |
+| `external_reference` | `VARCHAR` | id comum entre as fontes — **é** a matching key (ADR-0009), sem coluna separada |
 | `amount` | `NUMERIC(19,4)` | |
 | `currency` | `VARCHAR(3)` | ISO 4217 |
 | `transaction_date` | `DATE` | |
-| `matching_key` | `VARCHAR` | indexado; liga ao caso |
 | `case_id` | `UUID` FK → `reconciliation_case.id` | |
 | `trace_id` | `UUID` | |
 | `received_at` | `TIMESTAMPTZ` | |

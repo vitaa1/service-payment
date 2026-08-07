@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * Consome {@code TransactionNormalized} e delega ao {@link ReconciliationService}. O tipo
- * concreto do parâmetro resolve a desserialização (Decisão 2/ADR-0005) — esta fila só carrega
- * este evento. Exceção não tratada aciona o retry nativo do Spring AMQP (application.yml); ao
+ * concreto do parâmetro resolve a desserialização (Decisão 2/ADR-0005) — esta fila só
+ * carrega este evento. Exceção não tratada aciona o retry nativo do Spring AMQP; ao
  * esgotar, cai na DLQ (ADR-0010, decisão 6).
  */
 @Component
