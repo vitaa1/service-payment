@@ -41,8 +41,8 @@ class EmailComposerTest {
     assertThat(content.subject()).isEqualTo("[Conciliação] Divergência DIVERGENT no caso chg_123");
     assertThat(content.body())
         .contains(
-            "chg_123",
-            "ext_ref_999",
+            "Caso: chg_123",
+            "Referência externa: ext_ref_999",
             "amount",
             "199.90",
             "189.90",
