@@ -72,7 +72,14 @@ public class NotificationService {
     try {
       mailSender.send(message);
     } catch (MailException e) {
-      persist(eventId, existing, payload.caseId(), envelope.traceId(), NotificationStatus.FAILED, summary);
+      try {
+        persist(eventId, existing, payload.caseId(), envelope.traceId(), NotificationStatus.FAILED, summary);
+      } catch (RuntimeException persistFailure) {
+        // Preserva a causa raiz (falha de envio) mesmo se a gravação do FAILED também falhar
+        // (ex.: banco indisponível) — o retry do listener ainda dispara por qualquer uma delas.
+        persistFailure.addSuppressed(e);
+        throw persistFailure;
+      }
       throw e;
     }
     persist(eventId, existing, payload.caseId(), envelope.traceId(), NotificationStatus.SENT, summary);
