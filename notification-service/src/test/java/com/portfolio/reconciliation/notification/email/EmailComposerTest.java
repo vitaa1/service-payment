@@ -28,7 +28,7 @@ class EmailComposerTest {
             "chg_123",
             DivergenceType.DIVERGENT,
             2,
-            "chg_123",
+            "ext_ref_999",
             new DivergentDetails("amount", Map.of(Source.GATEWAY, "199.90", Source.BANK_STATEMENT, "189.90")),
             Instant.parse("2026-08-07T13:00:00Z"));
     EventEnvelope<DivergenceDetectedPayload> envelope =
@@ -39,7 +39,16 @@ class EmailComposerTest {
     EmailComposer.EmailContent content = composer.compose(envelope);
 
     assertThat(content.subject()).isEqualTo("[Conciliação] Divergência DIVERGENT no caso chg_123");
-    assertThat(content.body()).contains("chg_123", "amount", "199.90", "189.90", caseId.toString());
+    assertThat(content.body())
+        .contains(
+            "chg_123",
+            "ext_ref_999",
+            "amount",
+            "199.90",
+            "189.90",
+            caseId.toString(),
+            envelope.eventId().toString(),
+            envelope.traceId().toString());
   }
 
   @Test
