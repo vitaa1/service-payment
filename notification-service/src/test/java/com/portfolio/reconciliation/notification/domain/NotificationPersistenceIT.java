@@ -11,8 +11,19 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.context.TestPropertySource;
 
-/** Fatia de persistência: migration Flyway sobe o schema e a entidade persiste/recupera. */
+/**
+ * Fatia de persistência: migration Flyway sobe o schema e a entidade persiste/recupera.
+ *
+ * <p>{@code spring.rabbitmq.listener.simple.auto-startup=false}: esta classe não precisa
+ * consumir mensagens, mas o {@code @SpringBootTest} herdado sobe o contexto completo, incluindo
+ * o {@code DivergenceDetectedListener}. Sem essa propriedade, esse listener concorreria com o
+ * de {@code NotificationEndToEndIT} pela mesma fila no broker compartilhado do
+ * Testcontainers (contextos diferentes, mesmo RabbitMQ) e roubaria mensagens do outro teste de
+ * forma não determinística.
+ */
+@TestPropertySource(properties = "spring.rabbitmq.listener.simple.auto-startup=false")
 class NotificationPersistenceIT extends AbstractIntegrationTest {
 
   @Autowired NotificationLogRepository repository;
