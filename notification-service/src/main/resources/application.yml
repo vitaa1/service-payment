@@ -29,3 +29,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Endereços estáticos de envio (ADR-0011 — sem conceito de contato/cliente no domínio).
+notification:
+  from: no-reply@reconciliation.local
+  to: ops@reconciliation.local
