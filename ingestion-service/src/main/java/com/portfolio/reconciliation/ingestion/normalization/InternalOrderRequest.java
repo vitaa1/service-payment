@@ -10,7 +10,11 @@ import java.time.LocalDate;
 /** Pedido do sistema interno: tem id próprio e a externalReference de ligação. */
 public record InternalOrderRequest(
     @NotBlank String orderId,
-    @NotBlank String externalReference,
+    @NotBlank
+        @Pattern(
+            regexp = ReferencePatterns.EXTERNAL_REFERENCE,
+            message = ReferencePatterns.EXTERNAL_REFERENCE_MESSAGE)
+        String externalReference,
     @NotNull @Positive BigDecimal totalAmount,
     @NotBlank @Pattern(regexp = "[A-Z]{3}") String currency,
     @NotNull LocalDate orderDate,

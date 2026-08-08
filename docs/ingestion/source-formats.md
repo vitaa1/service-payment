@@ -88,6 +88,17 @@ Tem id de pedido próprio **e** a `externalReference` que liga à cobrança.
 | `buyer` | não | `counterparty` | direto |
 | `orderId` | sim | `sourceMetadata.orderId` | preservado |
 
+## Charset de `externalReference`
+
+O campo bruto que vira `externalReference` em cada fonte (`chargeId` no `GATEWAY`, `reference` no
+`BANK_STATEMENT`, `externalReference` no `INTERNAL_ORDER`) aceita apenas
+`[A-Za-z0-9_.:-]`, 1 a 255 caracteres. É a **matching key** (ADR-0009) e propaga sem
+transformação por todo o pipeline de eventos até virar Subject de e-mail no
+notification-service — a allowlist existe para não deixar caracteres de controle (`\r`, `\n`)
+ou qualquer coisa fora de um identificador de referência de pagamento comum chegarem lá, e o
+limite de tamanho casa com `matching_key VARCHAR(255)` no `reconciliation-service`. Payload fora
+desse formato é `REJECTED` (ver tabela abaixo).
+
 ## Validação e ciclo de vida
 
 A validação é **síncrona** — acontece antes da resposta. O payload bruto é persistido em `raw_ingestion` (auditoria) sempre que for um **JSON válido**, inclusive quando rejeitado por validação.
