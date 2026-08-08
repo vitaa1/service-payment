@@ -100,6 +100,89 @@ class IngestionServiceTest {
   }
 
   @Test
+  void deveRejeitarChargeIdComCaracteresDeControleSemPublicar() {
+    String chargeIdComCrLf =
+        "{\"chargeId\":\"chg_1\\r\\nSubject: hackeado\",\"amountInCents\":19990,"
+            + "\"currency\":\"BRL\",\"paidAt\":\"2026-07-29T13:45:00Z\"}";
+
+    IngestionResult result = service.ingest(Source.GATEWAY, chargeIdComCrLf, null);
+
+    assertFalse(result.accepted());
+    assertMensagemDeCaracteresNaoPermitidosSemVazarRegex(result, "chargeId");
+    verify(outboxRepository, never()).save(any());
+    assertRawGravadoComoRejected();
+  }
+
+  @Test
+  void deveRejeitarReferenceComCaracteresDeControleSemPublicar() {
+    String referenceComCrLf =
+        "{\"reference\":\"chg_1\\r\\nSubject: hackeado\",\"value\":\"199.90\","
+            + "\"date\":\"2026-07-29\"}";
+
+    IngestionResult result = service.ingest(Source.BANK_STATEMENT, referenceComCrLf, null);
+
+    assertFalse(result.accepted());
+    assertMensagemDeCaracteresNaoPermitidosSemVazarRegex(result, "reference");
+    verify(outboxRepository, never()).save(any());
+    assertRawGravadoComoRejected();
+  }
+
+  @Test
+  void deveRejeitarExternalReferenceComCaracteresDeControleSemPublicar() {
+    String externalReferenceComCrLf =
+        "{\"orderId\":\"ORD-1\",\"externalReference\":\"chg_1\\r\\nSubject: hackeado\","
+            + "\"totalAmount\":\"199.90\",\"currency\":\"BRL\",\"orderDate\":\"2026-07-29\"}";
+
+    IngestionResult result = service.ingest(Source.INTERNAL_ORDER, externalReferenceComCrLf, null);
+
+    assertFalse(result.accepted());
+    assertMensagemDeCaracteresNaoPermitidosSemVazarRegex(result, "externalReference");
+    verify(outboxRepository, never()).save(any());
+    assertRawGravadoComoRejected();
+  }
+
+  @Test
+  void deveAceitarChargeIdComPontuacaoUsualDeReferenciaDePagamento() {
+    String chargeIdComPontuacaoUsual =
+        "{\"chargeId\":\"chg-2026:01.01_x\",\"amountInCents\":19990,"
+            + "\"currency\":\"BRL\",\"paidAt\":\"2026-07-29T13:45:00Z\"}";
+
+    IngestionResult result = service.ingest(Source.GATEWAY, chargeIdComPontuacaoUsual, null);
+
+    assertTrue(result.accepted());
+  }
+
+  @Test
+  void deveRejeitarChargeIdMuitoLongoSemPublicar() {
+    String chargeIdMuitoLongo =
+        "{\"chargeId\":\"" + "a".repeat(256) + "\",\"amountInCents\":19990,"
+            + "\"currency\":\"BRL\",\"paidAt\":\"2026-07-29T13:45:00Z\"}";
+
+    IngestionResult result = service.ingest(Source.GATEWAY, chargeIdMuitoLongo, null);
+
+    assertFalse(result.accepted());
+    assertFalse(result.errors().isEmpty());
+    verify(outboxRepository, never()).save(any());
+  }
+
+  private void assertMensagemDeCaracteresNaoPermitidosSemVazarRegex(
+      IngestionResult result, String campo) {
+    assertTrue(
+        result.errors().stream()
+            .anyMatch(e -> e.contains(campo) && e.contains("caracteres não permitidos")),
+        () -> "esperava erro de caracteres não permitidos para " + campo + ", veio " + result.errors());
+    assertTrue(
+        result.errors().stream().noneMatch(e -> e.contains("A-Za-z")),
+        () -> "mensagem de erro não deve vazar o regex interno: " + result.errors());
+  }
+
+  private void assertRawGravadoComoRejected() {
+    ArgumentCaptor<RawIngestion> rawCaptor = ArgumentCaptor.forClass(RawIngestion.class);
+    verify(rawRepository).save(rawCaptor.capture());
+    assertEquals(RawIngestionStatus.REJECTED, rawCaptor.getValue().getStatus());
+  }
+
+  @Test
   void idempotencyKeyMuitoLongaDeveRejeitarSemPersistir() {
     String keyLonga = "x".repeat(256);
 
